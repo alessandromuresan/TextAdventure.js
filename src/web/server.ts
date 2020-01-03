@@ -16,11 +16,11 @@ const cartridgeName = process.env.NECRO_CARTRIDGE || 'necro';
 import necroCartridgeFactory from '../cartridges/necro/cartridge';
 
 const cartridgeFactories: { [cartridgeName: string]: (cartridgeBuilder: CartridgeBuilder, introText: string) => ICartridge } = {
-necro: necroCartridgeFactory
+    necro: necroCartridgeFactory
 };
   
 const cartridgeDirectories: { [cartridgeName: string]: string } = {
-necro: path.resolve(path.join(__dirname, '..', 'cartridges', 'necro'))
+    necro: path.resolve(path.join(__dirname, '..', 'cartridges', 'necro'))
 };
 
 const cartridgeFactory = cartridgeFactories[cartridgeName];

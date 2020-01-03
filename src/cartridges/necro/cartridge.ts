@@ -3,9 +3,7 @@ import { CartridgeBuilder } from "../../builders/cartridge.builder";
 import fs from 'fs';
 import path from 'path';
 
-const introText = fs.readFileSync(path.join(__dirname, 'introtext.txt'), 'utf8').toString();
-
-export = (cartridgeBuilder: CartridgeBuilder) => {
+export = (cartridgeBuilder: CartridgeBuilder, introText: string) => {
 
     cartridgeBuilder
     .introText(introText)

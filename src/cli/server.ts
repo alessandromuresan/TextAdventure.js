@@ -3,28 +3,52 @@ const chalk = require('chalk');
 
 import createConsole, { IConsoleInputResponse } from '../core/console/console';
 
-import necroCartridgeFactory from '../cartridges/necro';
 import { FileSystemCartridgeRepository } from '../core/repositories/file-system.cartridge.repository';
-import path from 'path';
 import { CartridgeBuilder } from '../builders/cartridge.builder';
+import { ICartridge } from '../core/shims/textadventurejs.shim';
+
+import path from 'path';
+import fs from 'fs';
+
+// import all available cartridges
+import necroCartridgeFactory from '../cartridges/necro/cartridge';
 
 const debugEnabled = process.env.NECRO_DEBUG ? (process.env.NECRO_DEBUG.toLowerCase() === 'true') : false;
 const devmodeEnabled = process.env.NECRO_DEVMODE ? (process.env.NECRO_DEVMODE.toLowerCase() === 'true') : false;
 const saveFilePath = process.env.NECRO_SAVEFILE || path.join(__dirname, 'savefile.json');
+const cartridgeName = process.env.NECRO_CARTRIDGE || 'necro';
+
+const cartridgeFactories: { [cartridgeName: string]: (cartridgeBuilder: CartridgeBuilder, introText: string) => ICartridge } = {
+  necro: necroCartridgeFactory
+};
+
+const cartridgeDirectories: { [cartridgeName: string]: string } = {
+  necro: path.resolve(path.join(__dirname, '..', 'cartridges', 'necro'))
+};
 
 async function main() {
+
+  if (!cartridgeFactories[cartridgeName]) {
+    throw new Error(`Cartridge '${cartridgeName}' was not found`);
+  }
 
   const repository = new FileSystemCartridgeRepository(saveFilePath);
 
   const savedCartridge = await repository.loadCartridgeAsync();
   const cartridgeBuilder = new CartridgeBuilder(savedCartridge);
-  const necroCartridge = necroCartridgeFactory(cartridgeBuilder);
 
-  const cons = createConsole(necroCartridge, {
+  const cartridgeFactory = cartridgeFactories[cartridgeName];
+  const cartridgeDirectory = cartridgeDirectories[cartridgeName];
+
+  const introText = fs.readFileSync(path.join(cartridgeDirectory, 'assets', 'introtext.txt'), 'utf8').toString();
+  const cartridge = cartridgeFactory(cartridgeBuilder, introText);
+
+  const cons = createConsole(cartridge, {
     onDebugLog: logDebug
   });
 
   logDev('Started CLI server');
+  logDev(`Using cartridge '${cartridgeName}'`);
   logDev(`Cartridge data will be saved to ${saveFilePath}`);
 
   console.log(chalk.cyan(cons.getIntroText()));

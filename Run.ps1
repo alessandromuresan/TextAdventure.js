@@ -3,7 +3,11 @@ param(
     [switch] $NoInstall,
     [switch] $Debug,
     [switch] $Devmode,
-    [switch] $DeleteSave
+    [switch] $DeleteSave,
+    [switch] $MusicEnabled,
+
+    [ValidateRange(0, 100)]
+    [int] $MusicVolume = 50
 )
 
 $ErrorActionPreference = "Stop"
@@ -32,5 +36,7 @@ if ($DeleteSave -and (Test-Path $SaveFile)) {
 $ENV:NECRO_SAVEFILE = $SaveFile
 $ENV:NECRO_DEBUG = if ($Debug) { "true" } else { "false" }
 $ENV:NECRO_DEVMODE = if ($Devmode) { "true" } else { "false" }
+$ENV:NECRO_MUSICENABLED = if ($MusicEnabled) { "true" } else { "false" }
+$ENV:NECRO_MUSICVOLUME = $MusicVolume
 
 npm start

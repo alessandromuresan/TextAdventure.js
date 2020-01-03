@@ -1,5 +1,6 @@
 const io = require('console-read-write');
 const chalk = require('chalk');
+const playSound = require('play-sound');
 
 import createConsole, { IConsoleInputResponse } from '../core/console/console';
 
@@ -17,6 +18,8 @@ const debugEnabled = process.env.NECRO_DEBUG ? (process.env.NECRO_DEBUG.toLowerC
 const devmodeEnabled = process.env.NECRO_DEVMODE ? (process.env.NECRO_DEVMODE.toLowerCase() === 'true') : false;
 const saveFilePath = process.env.NECRO_SAVEFILE || path.join(__dirname, 'savefile.json');
 const cartridgeName = process.env.NECRO_CARTRIDGE || 'necro';
+const musicEnabled = process.env.NECRO_MUSICENABLED ? (process.env.NECRO_MUSICENABLED.toLowerCase() === 'true') : false;
+const musicVolume = process.env.NECRO_MUSICVOLUME || '50';
 
 const cartridgeFactories: { [cartridgeName: string]: (cartridgeBuilder: CartridgeBuilder, introText: string) => ICartridge } = {
   necro: necroCartridgeFactory
@@ -26,11 +29,15 @@ const cartridgeDirectories: { [cartridgeName: string]: string } = {
   necro: path.resolve(path.join(__dirname, '..', 'cartridges', 'necro'))
 };
 
+const player = playSound({});
+
 async function main() {
 
   if (!cartridgeFactories[cartridgeName]) {
     throw new Error(`Cartridge '${cartridgeName}' was not found`);
   }
+
+  playSoundFile(path.resolve(path.join(__dirname, '..', 'cartridges', 'necro', 'assets', 'audio', 'ashes.mp3')));
 
   const repository = new FileSystemCartridgeRepository(saveFilePath);
 
@@ -84,18 +91,18 @@ async function main() {
           logDev(individualCommand);
   
           response = cons.input(individualCommand.trim());
-          handleConsoleResponse(response);
+          await handleConsoleResponseAsync(response);
         }
   
       } else {
         response = cons.input(command);
-        handleConsoleResponse(response);
+        await handleConsoleResponseAsync(response);
       }
 
     } else {
 
       response = cons.input(command);
-      handleConsoleResponse(response);
+      await handleConsoleResponseAsync(response);
     }
 
     await repository.saveCartridgeAsync(response.cartridge);
@@ -120,8 +127,21 @@ function logGameMessage(message: string) {
   console.log(chalk.cyan(message));
 }
 
-function handleConsoleResponse(response: IConsoleInputResponse) {
+async function handleConsoleResponseAsync(response: IConsoleInputResponse) {
   logGameMessage(response.actionResult.message);
+}
+
+function playSoundFile(soundFile: string): void {
+
+  if (musicEnabled) {
+    player.play(soundFile, { mplayer: ['-volume', musicVolume] }, (err: any) => {
+
+      console.log(`Encountered an error while playing sound file: ${soundFile}`)
+      console.log(`Error: ${err}`);
+
+      // throw err;
+    });
+  }
 }
 
 main();

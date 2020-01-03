@@ -51,7 +51,7 @@ async function main() {
   logDev(`Using cartridge '${cartridgeName}'`);
   logDev(`Cartridge data will be saved to ${saveFilePath}`);
 
-  console.log(chalk.cyan(cons.getIntroText()));
+  logGameMessage(cons.getIntroText());
 
   while (true) {
 
@@ -84,18 +84,18 @@ async function main() {
           logDev(individualCommand);
   
           response = cons.input(individualCommand.trim());
-          console.log(chalk.cyan(response.message));
+          handleConsoleResponse(response);
         }
   
       } else {
         response = cons.input(command);
-        console.log(chalk.cyan(response.message));
+        handleConsoleResponse(response);
       }
 
     } else {
 
       response = cons.input(command);
-      console.log(chalk.cyan(response.message));
+      handleConsoleResponse(response);
     }
 
     await repository.saveCartridgeAsync(response.cartridge);
@@ -114,6 +114,14 @@ function logDebug(message: string) {
   if (debugEnabled) {
     console.log(chalk.cyanBright(`    [DEBUG]> ${message}`));
   }
+}
+
+function logGameMessage(message: string) {
+  console.log(chalk.cyan(message));
+}
+
+function handleConsoleResponse(response: IConsoleInputResponse) {
+  logGameMessage(response.actionResult.message);
 }
 
 main();

@@ -1,4 +1,4 @@
-import { IItemCollection, IItem, IInteractable } from '../core/shims/textadventurejs.shim';
+import { IItemCollection, IItem, IInteractable, IGameActionResult } from '../core/shims/textadventurejs.shim';
 import { GameContext } from './game.context';
 
 export class ItemsBuilder {
@@ -46,10 +46,10 @@ export class ItemsBuilder {
 export class ItemBuilder {
 
     private _gameContext: GameContext;
-    private _interactionsMap: { [interactionName: string]: (gameContext: GameContext) => string } = {};
+    private _interactionsMap: { [interactionName: string]: (gameContext: GameContext) => (string | IGameActionResult) } = {};
 
     private _onTaken: (gameContext: GameContext) => void;
-    private _onUse: (gameContext: GameContext, object: string) => string;
+    private _onUse: (gameContext: GameContext, object: string) => (string | IGameActionResult);
 
     private _quantity: number;
     private _displayName: string;
@@ -89,7 +89,7 @@ export class ItemBuilder {
         return this;
     }
 
-    public on(interactionName: string, interactionFn: (gameContext: GameContext) => string): ItemBuilder {
+    public on(interactionName: string, interactionFn: (gameContext: GameContext) => (string | IGameActionResult)): ItemBuilder {
 
         this._interactionsMap[interactionName] = interactionFn;
 
@@ -103,7 +103,7 @@ export class ItemBuilder {
         return this;
     }
 
-    public onUse(onUseFn: (gameContext: GameContext, object: string) => string): ItemBuilder {
+    public onUse(onUseFn: (gameContext: GameContext, object: string) => (string | IGameActionResult)): ItemBuilder {
 
         this._onUse = onUseFn;
 

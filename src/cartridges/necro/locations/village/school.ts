@@ -25,7 +25,7 @@ export = (location: LocationBuilder) => {
 
                         return "The door opens. You can go outside.";
                     } else {
-                        return "The door is locked.";
+                        return { message: "The door is locked.", success: true, audioAssetToPlay: 'doorLocked' };
                     }
                 })
 

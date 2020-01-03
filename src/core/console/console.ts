@@ -12,7 +12,7 @@ export interface IConsole {
 }
 
 export interface IConsoleInputResponse {
-	message: string;
+	actionResult: IGameActionResult;
 	cartridge: ICartridge;
 }
 
@@ -34,27 +34,27 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 
 		++game.commandCounter;
 
-		let returnString;
+		let actionResult: IGameActionResult;
 
 		debug(`Command no. ${game.commandCounter}`);
 
 		if (isActionDefinedInCartridge(gameActions, command.action)) {
 
 			debug(`Running cartridge action '${command.action}'`);
-			returnString = gameActions[command.action](game, command, consoleInterface);
+			actionResult = gameActions[command.action](game, command, consoleInterface);
 
 		} else if (isActionDefinedInConsole(actions, command.action)) {
 
 			debug(`Running console action '${command.action}'`);
-			returnString = actions[command.action](game, command).message;
+			actionResult = actions[command.action](game, command);
 
 		} else if (canInteractWithSubjectInCurrentLocation(game, command.action, command.subject)) {
 
 			debug(`Performing interaction '${command.action}' in current location on subject ${command.subject}`);
-			returnString = interactWithSubjectInCurrentLocation(game, command.action, command.subject);
+			actionResult = interactWithSubjectInCurrentLocation(game, command.action, command.subject);
 		}
 
-		returnString = returnString || 'I don\'t know how to do that';
+		actionResult = actionResult || { message: 'I don\'t know how to do that', success: false };
 
 		const currentLocation = getCurrentLocation(game);
 
@@ -63,14 +63,14 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 			const updateLocationString = currentLocation.updateLocation(command);
 
 			if (updateLocationString) {
-				returnString = updateLocationString;
+				actionResult = { message: updateLocationString, success: true };
 			}
 		}
 
-		const checkForGameEndString = checkForGameEnd(game, returnString);
+		const endgameResult = checkForGameEnd(game, actionResult);
 
 		return {
-			message: checkForGameEndString,
+			actionResult: endgameResult,
 			cartridge: {
 				gameData: cartridge.gameData,
 				gameActions: cartridge.gameActions
@@ -90,7 +90,7 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 			}
 
 			if (canInteractWithSubjectInCurrentLocation(game, DefaultConsoleActons.drop, command.subject)) {
-				return { message: interactWithSubjectInCurrentLocation(game, DefaultConsoleActons.drop, command.subject), success: true };
+				return interactWithSubjectInCurrentLocation(game, DefaultConsoleActons.drop, command.subject);
 			}
 
 			if (isItemInPlayerInventory(game, command.subject)) {
@@ -195,19 +195,19 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 				return { message: getItem(getCurrentLocation(game).items, command.subject).description, success: true };
 			}
 
-			var interactionMessage = undefined;
+			var interactionResult = undefined;
 
 			if (canInteractWithSubjectInCurrentLocation(game, DefaultConsoleActons.look, command.subject)) {
 				debug(`Trying custom interaction with subject ${command.subject} in current location`);
-				interactionMessage = interactWithSubjectInCurrentLocation(game, DefaultConsoleActons.look, command.subject);
+				interactionResult = interactWithSubjectInCurrentLocation(game, DefaultConsoleActons.look, command.subject);
 			}
 
-			if (!interactionMessage) {
+			if (!interactionResult) {
 				debug(`No interaction message specified for command 'look' and subject '${command.subject}'`);
 				return { message: `What's a ${command.subject}?`, success: false };
 			}
 
-			return { message: (interactionMessage || ''), success: true };
+			return interactionResult;
 		},
 
 		take: function(game: IGameData, command: ICommand): IGameActionResult {
@@ -217,7 +217,7 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 			}
 
 			if (canInteractWithSubjectInCurrentLocation(game, DefaultConsoleActons.take, command.subject)) {
-				return { message: interactWithSubjectInCurrentLocation(game, DefaultConsoleActons.take, command.subject), success: true };
+				return interactWithSubjectInCurrentLocation(game, DefaultConsoleActons.take, command.subject);
 			}
 
 			if (isItemInCurrentLocation(game, command.subject)) {
@@ -246,7 +246,14 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 				const item = getItem(game.player.inventory, command.subject);
 
 				if (typeof item.use === 'function') {
-					return { message: item.use(command.object), success: true };
+
+					const itemUseResult = item.use(command.object);
+
+					if (typeof itemUseResult === 'string') {
+						return { message: itemUseResult, success: true };
+					}
+
+					return itemUseResult;
 				} else {
 					return { message: `Can't use '${command.subject}'`, success: false };
 				}
@@ -260,12 +267,13 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 	// ----------------------------\
 	// === Helper Functions ===============================================================================================
 	// ----------------------------/
-	function checkForGameEnd(game: any, returnString: any) {
+	function checkForGameEnd(game: any, actionResult: IGameActionResult) {
+		
 		if(game.gameOver){
-		returnString = returnString + '\n' + game.outroText;
-			actions.die(game,{action:'die'});
-		} 
-		return returnString;
+			actionResult.message = actionResult.message + '\n' + game.outroText;
+		}
+
+		return actionResult;
 	}
 
 	function clone(obj: any) {
@@ -399,7 +407,7 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 		return returnString;
 	}
 
-	function interactWithSubjectInCurrentLocation(game: any, interaction: any, subject: any) {
+	function interactWithSubjectInCurrentLocation(game: any, interaction: any, subject: any): IGameActionResult {
 
 		var currentLocation = getCurrentLocation(game);
 		var itemsForCurrentLocation = currentLocation.items;
@@ -419,9 +427,14 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 
 			var customInteraction = customInteractionsForItem[interaction];
 
-			return typeof customInteraction === 'function'
+			const interactionResult = typeof customInteraction === 'function'
 				? customInteraction()
 				: customInteraction;
+
+			return typeof interactionResult === 'string'
+				? { message: interactionResult, success: true }
+				: interactionResult;
+
 		}
 
 		if (subjectIsInteractable) {
@@ -429,9 +442,13 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 			var interactible = interactablesForCurrentLocation[subject];
 			var customInteraction = interactible[interaction];
 
-			return typeof customInteraction === 'function'
+			const interactionResult = typeof customInteraction === 'function'
 				? customInteraction()
 				: customInteraction;
+
+			return typeof interactionResult === 'string'
+				? { message: interactionResult, success: true }
+				: interactionResult;
 		}
 
 		if (!subjectIsInteractable && !subjectIsItem) {

@@ -1,4 +1,4 @@
-import { IInteractableCollction, IInteractable } from '../core/shims/textadventurejs.shim';
+import { IInteractableCollction, IInteractable, IGameActionResult } from '../core/shims/textadventurejs.shim';
 import { GameContext } from './game.context';
 
 export class InteractablesBuilder {
@@ -46,7 +46,7 @@ export class InteractablesBuilder {
 
 export class InteractableBuilder {
 
-    private _interactionsMap: { [interactionName: string]: (gameContext: GameContext) => string } = {};
+    private _interactionsMap: { [interactionName: string]: (gameContext: GameContext) => (string | IGameActionResult) } = {};
     private _gameContext: GameContext;
     private _savedInteractable: IInteractable;
 
@@ -55,7 +55,7 @@ export class InteractableBuilder {
         this._savedInteractable = savedInteractable;
     }
 
-    public on(interactionName: string, interactionFn: (gameContext: GameContext) => string): InteractableBuilder {
+    public on(interactionName: string, interactionFn: (gameContext: GameContext) => (string | IGameActionResult)): InteractableBuilder {
 
         this._interactionsMap[interactionName] = interactionFn;
 

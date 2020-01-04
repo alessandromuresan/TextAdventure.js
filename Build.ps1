@@ -26,7 +26,7 @@ function Build-Engine {
 
     cd $EngineDirectory
 
-    Write-Host ""
+    Write-Dev "Building engine"
 
     if (!$NoInstall) {
         npm ci
@@ -60,7 +60,25 @@ function Build-Client {
 
     cd $ClientDirectory
 
+    Write-Dev "Installing Angular CLI"
+
+    npm install -g @angular/cli@8.3.21
+
+    Write-Dev "Building client"
+
+    ng build
+
     cd $RootDirectory
+}
+
+function Write-Dev {
+
+    param(
+        [Parameter(Mandatory)]
+        [string] $Message
+    )
+
+    Write-Host ([System.Environment]::NewLine + "> " + $Message + [System.Environment]::NewLine) -ForegroundColor "Cyan"
 }
 
 Main

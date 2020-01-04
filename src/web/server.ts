@@ -6,7 +6,7 @@ import fs from 'fs';
 import { ICartridge } from '../core/shims/textadventurejs.shim';
 import { CartridgeBuilder } from '../builders/cartridge.builder';
 
-const port = parseInt((process.env.NECRO_PORT || '3000'), 10);
+const port = parseInt((process.env.NECRO_PORT || '80'), 10);
 const debugEnabled = process.env.NECRO_DEBUG ? (process.env.NECRO_DEBUG.toLowerCase() === 'true') : false;
 const devmodeEnabled = process.env.NECRO_DEVMODE ? (process.env.NECRO_DEVMODE.toLowerCase() === 'true') : false;
 const saveFilePath = process.env.NECRO_SAVEFILE || path.join(__dirname, 'savefile.json');
@@ -78,11 +78,7 @@ async function startServer() {
 
 async function loadEngineAsync(): Promise<{ console: IConsole, cartridge: ICartridge }> {
 
-    const cartridgeRepository = new FileSystemCartridgeRepository(saveFilePath);
-
-    const savedCartridge = await cartridgeRepository.loadCartridgeAsync();
-
-    const cartridgeBuilder = new CartridgeBuilder(savedCartridge);
+    const cartridgeBuilder = new CartridgeBuilder();
     const cartridge = cartridgeFactory(cartridgeBuilder, introText);
 
     const consoleOptions: IConsoleOptions = {};

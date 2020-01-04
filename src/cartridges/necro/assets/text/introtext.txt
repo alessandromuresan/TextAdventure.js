@@ -7,5 +7,5 @@ _   _   _____   _____  ______   _____
 
 v1.0.0-prealpha
 
-The Magi Consortium has delegated you to investigate accounts foul magicks in a far away village.
+The Magi Consortium has delegated you to investigate accounts of foul magicks in a far away village.
 You wake up in the village feeling a bit nauseated...

@@ -1,4 +1,5 @@
 param(
+    [switch] $Production,
     [switch] $NoBuild,
     [switch] $NoInstall,
     [switch] $Debug,
@@ -66,7 +67,15 @@ function Build-Client {
 
     Write-Dev "Building client"
 
-    ng build
+    if ($Production) {
+        ng build --configuration=production
+    } else {
+        ng build
+    }
+
+    if (!$Production) {
+        ng serve
+    }
 
     cd $RootDirectory
 }

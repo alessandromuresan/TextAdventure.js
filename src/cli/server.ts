@@ -1,6 +1,5 @@
 const io = require('console-read-write');
 const chalk = require('chalk');
-const { Worker } = require('worker_threads')
 
 import createConsole, { IConsoleInputResponse } from '../core/console/console';
 
@@ -135,6 +134,7 @@ async function playSoundFileAsync(soundFile: string, loop?: boolean): Promise<vo
 
   if (musicEnabled) {
 
+    /*
     return new Promise((resolve, reject) => {
       const worker = new Worker(path.join(__dirname, './audio.worker.js'), {
         workerData: {
@@ -151,6 +151,7 @@ async function playSoundFileAsync(soundFile: string, loop?: boolean): Promise<vo
           reject(new Error(`Worker stopped with exit code ${code}`));
       });
     });
+    */
 
     /*
     player.play(soundFile, { mplayer: ['-volume', musicVolume] }, (err: any) => {

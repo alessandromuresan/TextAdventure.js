@@ -14,10 +14,12 @@
     "build": "npm run clean && tsc && npm run copy",
     "copy": "npm run copy:web && npm run copy:cartridges",
     "copy:cartridges": "cd src/cartridges && copyfiles -e **/*.ts **/*.* ../../dist/cartridges && cd ../..",
-    "copy:web": "cd src/web && copyfiles -e **/*.ts static/**/*.* ../../dist/web && cd ../..",
+    "copy:web": "npm run copy:web:static && npm run copy:web:assets",
+    "copy:web:static": "cd src/web && copyfiles -e **/*.ts static/**/*.* ../../dist/web && cd ../..",
+    "copy:web:assets": "cd src/cartridges/necro && copyfiles -e **/*.js assets/**/*.* ../../../dist/web/static && cd ../../..",
     "start:web": "node dist/web/server.js",
     "start:cli": "node --experimental-worker dist/cli/server.js",
-    "start": "npm run start:cli"
+    "start": "npm run start:web"
   },
   "files": [
     "server.js",

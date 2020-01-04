@@ -2,6 +2,7 @@ $(function(){
 	// ===== Onload Functions ===========================================================
 	displayResize();
 	getIntroText();
+	playBackgroundMusic('/assets/audio/ashes.mp3');
 
 	// ===== Event Handlers =============================================================
 	// ----- Input Submit ---------------------------------------------------------------
@@ -78,14 +79,37 @@ function displayResize(){
 function toScreen(response: any, actor: any) {
 
 	let message = typeof response === 'string' ? response : '';
+	let audioAssetToPlay;
 
 	if(actor == 'user' || actor === 'terminal'){
 		message = '> ' + message;
 	} else {
 		message = response.actionResult.message;
+		audioAssetToPlay = response.actionResult.audioAssetToPlay;
 	}
 
 	var displayString = $('#display').val() + message + '\n';
+
 	$('#display').val(displayString);
 	$('#display').scrollTop($('#display')[0].scrollHeight);
+
+	if (audioAssetToPlay) {
+		playSound(`/assets/audio/${audioAssetToPlay}`);
+	}
+}
+
+function playBackgroundMusic(src: string): void {
+
+	const audioElement: HTMLAudioElement = <HTMLAudioElement>document.getElementById('audio-background-music');
+
+	audioElement.src = src;
+	audioElement.play();
+}
+
+function playSound(src: string): void {
+
+	const soundElement: HTMLAudioElement = <HTMLAudioElement>document.getElementById('audio-sound');
+
+	soundElement.src = src;
+	soundElement.play();
 }

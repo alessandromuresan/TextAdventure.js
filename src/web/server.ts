@@ -3,11 +3,10 @@ import bodyParser from 'body-parser';
 import session from 'express-session';
 import path from 'path';
 import fs from 'fs';
-import { ConsoleHttpServer } from '../core/server/http-server';
 import { ICartridge } from '../core/shims/textadventurejs.shim';
 import { CartridgeBuilder } from '../builders/cartridge.builder';
 
-const port = parseInt((process.env.PORT || '3000'), 10);
+const port = parseInt((process.env.NECRO_PORT || '3000'), 10);
 const debugEnabled = process.env.NECRO_DEBUG ? (process.env.NECRO_DEBUG.toLowerCase() === 'true') : false;
 const devmodeEnabled = process.env.NECRO_DEVMODE ? (process.env.NECRO_DEVMODE.toLowerCase() === 'true') : false;
 const saveFilePath = process.env.NECRO_SAVEFILE || path.join(__dirname, 'savefile.json');
@@ -21,15 +20,10 @@ import createConsole, { IConsoleOptions, IConsoleInputResponse } from '../core/c
 const cartridgeFactories: { [cartridgeName: string]: (cartridgeBuilder: CartridgeBuilder, introText: string) => ICartridge } = {
     necro: necroCartridgeFactory
 };
-  
-const cartridgeDirectories: { [cartridgeName: string]: string } = {
-    necro: path.resolve(path.join(__dirname, '..', 'cartridges', 'necro'))
-};
 
 const cartridgeFactory = cartridgeFactories[cartridgeName];
-const cartridgeDirectory = cartridgeDirectories[cartridgeName];
 
-const introText = fs.readFileSync(path.join(cartridgeDirectory, 'assets', 'text', 'introtext.txt'), 'utf8').toString();
+const introText = fs.readFileSync(path.join(__dirname, 'static', 'assets', 'text', 'introtext.txt'), 'utf8').toString();
 
 const app = express();
 
@@ -40,26 +34,28 @@ app.use(express.static(path.join(__dirname, 'static')));
 
 app.use(session({secret: sessionSecret, resave: false, saveUninitialized: true}));
 
+const cartridgeBuilder = new CartridgeBuilder();
+const cartridge = cartridgeFactory(cartridgeBuilder, introText);
+
+const consoleOptions: IConsoleOptions = {};
+
+if (debugEnabled) {
+    consoleOptions.onDebugLog = (message: string) => {
+        console.log(`    [DEBUG] ${message}`);
+    };
+}
+
+const con = createConsole(cartridge, consoleOptions);
+
 app.post('/console/input', (req, res) => {
 
     const sessionId = req.sessionID;
 
     console.log(`Session id: ${sessionId}`);
 
-    const cartridgeBuilder = new CartridgeBuilder();
-    const cartridge = cartridgeFactory(cartridgeBuilder, introText);
+    const response = con.input(req.body.input);
 
-    const consoleOptions: IConsoleOptions = {};
-
-    if (debugEnabled) {
-        consoleOptions.onDebugLog = (message: string) => {
-            console.log(`    [DEBUG] ${message}`);
-        };
-    }
-
-    const con = createConsole(cartridge, consoleOptions);
-
-    res.json(con.input(req.body.input));
+    res.json(response);
 });
 
 app.post('/console/getIntro', (req, res) => {
@@ -67,19 +63,6 @@ app.post('/console/getIntro', (req, res) => {
     const sessionId = req.sessionID;
 
     console.log(`Session id: ${sessionId}`);
-
-    const cartridgeBuilder = new CartridgeBuilder();
-    const cartridge = cartridgeFactory(cartridgeBuilder, introText);
-
-    const consoleOptions: IConsoleOptions = {};
-
-    if (debugEnabled) {
-        consoleOptions.onDebugLog = (message: string) => {
-            console.log(`    [DEBUG] ${message}`);
-        };
-    }
-
-    const con = createConsole(cartridge, consoleOptions);
 
     const response: IConsoleInputResponse = {
         actionResult: {

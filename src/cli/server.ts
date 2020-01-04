@@ -1,6 +1,6 @@
 const io = require('console-read-write');
 const chalk = require('chalk');
-const playSound = require('play-sound');
+const { Worker } = require('worker_threads')
 
 import createConsole, { IConsoleInputResponse } from '../core/console/console';
 
@@ -26,15 +26,13 @@ const cartridgeFactories: { [cartridgeName: string]: (cartridgeBuilder: Cartridg
   necro: necroCartridgeFactory
 };
 
-const player = playSound({});
-
 async function main() {
 
   if (!cartridgeFactories[cartridgeName]) {
     throw new Error(`Cartridge '${cartridgeName}' was not found`);
   }
 
-  playSoundFile(path.join(assetsDirectory, 'audio', 'ashes.mp3'));
+  await playSoundFileAsync(path.join(assetsDirectory, 'audio', 'ashes.mp3'), true);
 
   const repository = new FileSystemCartridgeRepository(saveFilePath);
 
@@ -129,30 +127,38 @@ async function handleConsoleResponseAsync(response: IConsoleInputResponse) {
   logGameMessage(response.actionResult.message);
 
   if (response.actionResult.audioAssetToPlay) {
-    // await playSoundFileAsync(getAudioAssetPath(response.actionResult.audioAssetToPlay));
+    await playSoundFileAsync(getAudioAssetPath(response.actionResult.audioAssetToPlay));
   }
 }
 
-function playSoundFile(soundFile: string): void {
+async function playSoundFileAsync(soundFile: string, loop?: boolean): Promise<void> {
 
   if (musicEnabled) {
-    player.play(soundFile, { mplayer: ['-volume', musicVolume, '-loop', '0'] }, (err: any) => {
 
-      logDev(`Encountered an error while playing sound file: ${soundFile}`);
-      logDev(`Error: ${err}`);
+    return new Promise((resolve, reject) => {
+      const worker = new Worker(path.join(__dirname, './audio.worker.js'), {
+        workerData: {
+          loop: loop,
+          soundFile: soundFile,
+          volume: musicVolume
+        }
     });
-  }
-}
 
-async function playSoundFileAsync(soundFile: string): Promise<void> {
+      worker.on('message', resolve);
+      worker.on('error', reject);
+      worker.on('exit', (code: number) => {
+        if (code !== 0)
+          reject(new Error(`Worker stopped with exit code ${code}`));
+      });
+    });
 
-  if (musicEnabled) {
-
+    /*
     player.play(soundFile, { mplayer: ['-volume', musicVolume] }, (err: any) => {
 
       logDev(`Encountered an error while playing sound file: ${soundFile}`);
       logDev(`Error: ${err}`);
     });
+    */
 
     /*
     return new Promise((resolve, reject) => {

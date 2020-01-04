@@ -16,7 +16,7 @@
     "copy:cartridges": "cd src/cartridges && copyfiles -e **/*.ts **/*.* ../../dist/cartridges && cd ../..",
     "copy:web": "cd src/web && copyfiles -e **/*.ts static/**/*.* ../../dist/web && cd ../..",
     "start:web": "node dist/web/server.js",
-    "start:cli": "node dist/cli/server.js",
+    "start:cli": "node --experimental-worker dist/cli/server.js",
     "start": "npm run start:cli"
   },
   "files": [

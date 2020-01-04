@@ -23,9 +23,9 @@ export = (location: LocationBuilder) => {
                                 .destination(LocationNames.villageSquare);
                         });
 
-                        return "The door opens. You can go outside.";
+                        return { message: "The door opens. You can go outside.", success: true, audioAssetToPlay: "door_open.mp3" };
                     } else {
-                        return { message: "The door is locked.", success: true, audioAssetToPlay: 'doorLocked' };
+                        return { message: "The door is locked.", success: true, audioAssetToPlay: "door_locked.mp3" };
                     }
                 })
 
@@ -56,7 +56,7 @@ export = (location: LocationBuilder) => {
                                         });
                                 });
                                     
-                                return "There's a key inside.";
+                                return { message: "There's a key inside.", success: true, audioAssetToPlay: "drawer_open.mp3" };
                             });
                     })
 

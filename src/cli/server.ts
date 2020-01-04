@@ -20,13 +20,10 @@ const saveFilePath = process.env.NECRO_SAVEFILE || path.join(__dirname, 'savefil
 const cartridgeName = process.env.NECRO_CARTRIDGE || 'necro';
 const musicEnabled = process.env.NECRO_MUSICENABLED ? (process.env.NECRO_MUSICENABLED.toLowerCase() === 'true') : false;
 const musicVolume = process.env.NECRO_MUSICVOLUME || '50';
+const assetsDirectory = process.env.NECRO_ASSETSDIRECTORY || path.resolve(path.join(__dirname, '..', 'cartridges', 'necro', 'assets'));
 
 const cartridgeFactories: { [cartridgeName: string]: (cartridgeBuilder: CartridgeBuilder, introText: string) => ICartridge } = {
   necro: necroCartridgeFactory
-};
-
-const cartridgeDirectories: { [cartridgeName: string]: string } = {
-  necro: path.resolve(path.join(__dirname, '..', 'cartridges', 'necro'))
 };
 
 const player = playSound({});
@@ -37,7 +34,7 @@ async function main() {
     throw new Error(`Cartridge '${cartridgeName}' was not found`);
   }
 
-  playSoundFile(path.resolve(path.join(__dirname, '..', 'cartridges', 'necro', 'assets', 'audio', 'ashes.mp3')));
+  playSoundFile(path.join(assetsDirectory, 'audio', 'ashes.mp3'));
 
   const repository = new FileSystemCartridgeRepository(saveFilePath);
 
@@ -45,15 +42,15 @@ async function main() {
   const cartridgeBuilder = new CartridgeBuilder(savedCartridge);
 
   const cartridgeFactory = cartridgeFactories[cartridgeName];
-  const cartridgeDirectory = cartridgeDirectories[cartridgeName];
 
-  const introText = fs.readFileSync(path.join(cartridgeDirectory, 'assets', 'introtext.txt'), 'utf8').toString();
+  const introText = fs.readFileSync(getTextAssetPath('introtext.txt'), 'utf8').toString();
   const cartridge = cartridgeFactory(cartridgeBuilder, introText);
 
   const cons = createConsole(cartridge, {
     onDebugLog: logDebug
   });
 
+  logDev(`Process pid: ${process.pid}`);
   logDev('Started CLI server');
   logDev(`Using cartridge '${cartridgeName}'`);
   logDev(`Cartridge data will be saved to ${saveFilePath}`);
@@ -65,7 +62,7 @@ async function main() {
     const command: string = await io.read();
 
     if (command === 'exit') {
-      io.write('Exiting...');
+      io.write('Game ended. Use ctrl + c to exit');
       break;
     }
 
@@ -128,20 +125,57 @@ function logGameMessage(message: string) {
 }
 
 async function handleConsoleResponseAsync(response: IConsoleInputResponse) {
+
   logGameMessage(response.actionResult.message);
+
+  if (response.actionResult.audioAssetToPlay) {
+    // await playSoundFileAsync(getAudioAssetPath(response.actionResult.audioAssetToPlay));
+  }
 }
 
 function playSoundFile(soundFile: string): void {
 
   if (musicEnabled) {
-    player.play(soundFile, { mplayer: ['-volume', musicVolume] }, (err: any) => {
+    player.play(soundFile, { mplayer: ['-volume', musicVolume, '-loop', '0'] }, (err: any) => {
 
-      console.log(`Encountered an error while playing sound file: ${soundFile}`)
-      console.log(`Error: ${err}`);
-
-      // throw err;
+      logDev(`Encountered an error while playing sound file: ${soundFile}`);
+      logDev(`Error: ${err}`);
     });
   }
+}
+
+async function playSoundFileAsync(soundFile: string): Promise<void> {
+
+  if (musicEnabled) {
+
+    player.play(soundFile, { mplayer: ['-volume', musicVolume] }, (err: any) => {
+
+      logDev(`Encountered an error while playing sound file: ${soundFile}`);
+      logDev(`Error: ${err}`);
+    });
+
+    /*
+    return new Promise((resolve, reject) => {
+      player.play(soundFile, { mplayer: ['-volume', musicVolume] }, (err: any) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+    */
+  }
+
+  return Promise.resolve();
+}
+
+function getAudioAssetPath(assetName: string): string {
+  return path.join(assetsDirectory, 'audio', assetName);
+}
+
+function getTextAssetPath(assetName: string): string {
+  return path.join(assetsDirectory, 'text', assetName);
 }
 
 main();

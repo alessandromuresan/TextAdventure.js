@@ -1,7 +1,7 @@
 $(function(){
 	// ===== Onload Functions ===========================================================
 	displayResize();
-	messageServer('get games');
+	// messageServer('get games');
 
 	// ===== Event Handlers =============================================================
 	// ----- Input Submit ---------------------------------------------------------------
@@ -50,8 +50,10 @@ $(function(){
 // ----- Send Message to Server ---------------------------------------------------------
 function messageServer(message: any){
 	$.post(window.location.href+'console', {"input": message}, function(data) {
+		console.log(data);
 		toScreen(data.response,'console');
-	}).fail(function(){
+	}).fail(function(err){
+		console.log(err);
 		toScreen('Unable to reach server.','terminal');
 	});
 }
@@ -61,10 +63,16 @@ function displayResize(){
 	$('#display').scrollTop($('#display')[0].scrollHeight);
 }
 // ----- Write to Screen ----------------------------------------------------------------
-function toScreen(message: any, actor: any){
-	if(actor == 'user'){
+function toScreen(response: any, actor: any) {
+
+	let message = '';
+
+	if(actor == 'user' || actor === 'terminal'){
 		message = '> ' + message;
+	} else {
+		message = response.actionResult.message;
 	}
+
 	var displayString = $('#display').val() + message + '\n';
 	$('#display').val(displayString);
 	$('#display').scrollTop($('#display')[0].scrollHeight);

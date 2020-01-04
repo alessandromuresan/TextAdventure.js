@@ -26,7 +26,7 @@ const cartridgeDirectories: { [cartridgeName: string]: string } = {
 const cartridgeFactory = cartridgeFactories[cartridgeName];
 const cartridgeDirectory = cartridgeDirectories[cartridgeName];
 
-const introText = fs.readFileSync(path.join(cartridgeDirectory, 'assets', 'introtext.txt'), 'utf8').toString();
+const introText = fs.readFileSync(path.join(cartridgeDirectory, 'assets', 'text', 'introtext.txt'), 'utf8').toString();
 const cartridgeBuilder = new CartridgeBuilder();
 const cartridge = cartridgeFactory(cartridgeBuilder, introText);
 

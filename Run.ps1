@@ -7,36 +7,60 @@ param(
     [switch] $MusicEnabled,
 
     [ValidateRange(0, 100)]
-    [int] $MusicVolume = 50
+    [int] $MusicVolume = 50,
+
+    $RootDirectory = $PSScriptRoot,
+    $EngineDirectory = "$($PSScriptRoot)/engine",
+    $ClientDirectory = "$($PSScriptRoot)/client"
 )
 
 $ErrorActionPreference = "Stop"
 
-Write-Host ""
+function Main {
 
-if (!$NoInstall) {
-    npm ci
-} else {
-    Write-Warning "Make sure to run 'npm ci' before running this script"
+    Build-Engine
+    Build-Client
 }
 
-if (!$NoBuild) {
-    npm run build
-} else {
-    Write-Warning "Make sure to run 'npm run build' before running this script"
+function Build-Engine {
+
+    cd $EngineDirectory
+
+    Write-Host ""
+
+    if (!$NoInstall) {
+        npm ci
+    } else {
+        Write-Warning "Make sure to run 'npm ci' before running this script"
+    }
+
+    if (!$NoBuild) {
+        npm run build
+    } else {
+        Write-Warning "Make sure to run 'npm run build' before running this script"
+    }
+
+    $SaveFile = Join-Path $PSScriptRoot "savefile.json"
+
+    if ($DeleteSave -and (Test-Path $SaveFile)) {
+        Write-Warning "Deleting old save file: $SaveFile"
+        Remove-Item -Path $SaveFile -Force | Out-Null
+    }
+
+    $ENV:NECRO_SAVEFILE = $SaveFile
+    $ENV:NECRO_DEBUG = if ($Debug) { "true" } else { "false" }
+    $ENV:NECRO_DEVMODE = if ($Devmode) { "true" } else { "false" }
+    $ENV:NECRO_MUSICENABLED = if ($MusicEnabled) { "true" } else { "false" }
+    $ENV:NECRO_MUSICVOLUME = $MusicVolume
+
+    cd $RootDirectory
 }
 
-$SaveFile = Join-Path $PSScriptRoot "savefile.json"
+function Build-Client {
 
-if ($DeleteSave -and (Test-Path $SaveFile)) {
-    Write-Warning "Deleting old save file: $SaveFile"
-    Remove-Item -Path $SaveFile -Force | Out-Null
+    cd $ClientDirectory
+
+    cd $RootDirectory
 }
 
-$ENV:NECRO_SAVEFILE = $SaveFile
-$ENV:NECRO_DEBUG = if ($Debug) { "true" } else { "false" }
-$ENV:NECRO_DEVMODE = if ($Devmode) { "true" } else { "false" }
-$ENV:NECRO_MUSICENABLED = if ($MusicEnabled) { "true" } else { "false" }
-$ENV:NECRO_MUSICVOLUME = $MusicVolume
-
-npm start
+Main

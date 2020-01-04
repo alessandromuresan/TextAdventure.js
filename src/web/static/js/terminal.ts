@@ -1,7 +1,7 @@
 $(function(){
 	// ===== Onload Functions ===========================================================
 	displayResize();
-	// messageServer('get games');
+	getIntroText();
 
 	// ===== Event Handlers =============================================================
 	// ----- Input Submit ---------------------------------------------------------------
@@ -48,15 +48,27 @@ $(function(){
 
 // ===== Functions ======================================================================
 // ----- Send Message to Server ---------------------------------------------------------
-function messageServer(message: any){
-	$.post(window.location.href+'console', {"input": message}, function(data) {
+function messageServer(message: any) {
+	$.post(window.location.href + 'console/input', {"input": message}, function(data) {
 		console.log(data);
-		toScreen(data.response,'console');
+		toScreen(data,'console');
+	}).fail(function(err) {
+		console.log(err);
+		toScreen('Unable to reach server.','terminal');
+	});
+}
+
+function getIntroText() {
+
+	$.post(window.location.href + 'console/getIntro', function(data) {
+		console.log(data);
+		toScreen(data,'console');
 	}).fail(function(err){
 		console.log(err);
 		toScreen('Unable to reach server.','terminal');
 	});
 }
+
 // ----- Insure Terminal Appearance -----------------------------------------------------
 function displayResize(){
 	$('#display').height($(window).height()-30);
@@ -65,7 +77,7 @@ function displayResize(){
 // ----- Write to Screen ----------------------------------------------------------------
 function toScreen(response: any, actor: any) {
 
-	let message = '';
+	let message = typeof response === 'string' ? response : '';
 
 	if(actor == 'user' || actor === 'terminal'){
 		message = '> ' + message;

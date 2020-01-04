@@ -5,7 +5,7 @@ _   _   _____   _____  ______   _____
 | |\  | | |___  | \__/\ | |\ \  \ \_/ /
 \_| \_/ \____/   \____/ \_| \_|  \___/ 
 
-            v1.0.0-prealpha
+v1.0.0-prealpha
 
 The Magi Consortium has delegated you to investigate accounts foul magicks in a far away village.
 You wake up in the village feeling a bit nauseated...

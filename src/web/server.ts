@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import session from 'express-session';
 import path from 'path';
@@ -15,7 +15,8 @@ const sessionSecret = process.env.NECRO_SESSION_SECRET || '1234567890QWERTY';
 
 // import all available cartridges
 import necroCartridgeFactory from '../cartridges/necro/cartridge';
-import createConsole, { IConsoleOptions, IConsoleInputResponse } from '../core/console/console';
+import createConsole, { IConsoleOptions, IConsoleInputResponse, IConsole } from '../core/console/console';
+import { FileSystemCartridgeRepository } from '../core/repositories/file-system.cartridge.repository';
 
 const cartridgeFactories: { [cartridgeName: string]: (cartridgeBuilder: CartridgeBuilder, introText: string) => ICartridge } = {
     necro: necroCartridgeFactory
@@ -25,56 +26,79 @@ const cartridgeFactory = cartridgeFactories[cartridgeName];
 
 const introText = fs.readFileSync(path.join(__dirname, 'static', 'assets', 'text', 'introtext.txt'), 'utf8').toString();
 
-const app = express();
+async function startServer() {
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+    const engine = await loadEngineAsync();
 
-app.use(express.static(path.join(__dirname, 'static')));
+    const app = express();
+    
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: true }));
+    
+    app.use(express.static(path.join(__dirname, 'static')));
+    
+    app.use(session({secret: sessionSecret, resave: false, saveUninitialized: true}));
+    
+    app.post('/console/input', async (req: any, res: any) => {
+    
+        const sessionId = req.sessionID;
+    
+        console.log(`Session id: ${sessionId}`);
+    
+        const response = engine.console.input(req.body.input);
+    
+        const cartridgeRepository = new FileSystemCartridgeRepository(saveFilePath);
+    
+        await cartridgeRepository.saveCartridgeAsync(response.cartridge);
+    
+        res.json(response);
+    });
+    
+    app.post('/console/getIntro', async (req: any, res: any) => {
+    
+        const sessionId = req.sessionID;
+    
+        console.log(`Session id: ${sessionId}`);
+    
+        const response: IConsoleInputResponse = {
+            actionResult: {
+                message: engine.console.getIntroText(),
+                success: true
+            },
+            cartridge: engine.cartridge
+        };
+    
+        res.json(response);
+    });
+    
+    app.listen(port, () => {
+        console.log(`Listening on port ${port}`);
+    });
+}
 
-app.use(session({secret: sessionSecret, resave: false, saveUninitialized: true}));
+async function loadEngineAsync(): Promise<{ console: IConsole, cartridge: ICartridge }> {
 
-const cartridgeBuilder = new CartridgeBuilder();
-const cartridge = cartridgeFactory(cartridgeBuilder, introText);
+    const cartridgeRepository = new FileSystemCartridgeRepository(saveFilePath);
 
-const consoleOptions: IConsoleOptions = {};
+    const savedCartridge = await cartridgeRepository.loadCartridgeAsync();
 
-if (debugEnabled) {
-    consoleOptions.onDebugLog = (message: string) => {
-        console.log(`    [DEBUG] ${message}`);
+    const cartridgeBuilder = new CartridgeBuilder(savedCartridge);
+    const cartridge = cartridgeFactory(cartridgeBuilder, introText);
+
+    const consoleOptions: IConsoleOptions = {};
+
+    if (debugEnabled) {
+        consoleOptions.onDebugLog = (message: string) => {
+            console.log(`    [DEBUG] ${message}`);
+        };
+    }
+
+    const con = createConsole(cartridge, consoleOptions);
+
+    return {
+        console: con,
+        cartridge: cartridge
     };
 }
 
-const con = createConsole(cartridge, consoleOptions);
-
-app.post('/console/input', (req, res) => {
-
-    const sessionId = req.sessionID;
-
-    console.log(`Session id: ${sessionId}`);
-
-    const response = con.input(req.body.input);
-
-    res.json(response);
-});
-
-app.post('/console/getIntro', (req, res) => {
-
-    const sessionId = req.sessionID;
-
-    console.log(`Session id: ${sessionId}`);
-
-    const response: IConsoleInputResponse = {
-        actionResult: {
-            message: con.getIntroText(),
-            success: true
-        },
-        cartridge: cartridge
-    };
-
-    res.json(response);
-});
-
-app.listen(port, () => {
-    console.log(`Listening on port ${port}`);
-});
+startServer();

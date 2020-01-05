@@ -1,6 +1,6 @@
 import { DefaultParser } from './default.parser';
 import { IParser } from './parser';
-import { ICartridge, IGameData, IGameActions, ILocation, IGameActionResult, ICommand, DefaultConsoleActons, IItem } from '../shims/textadventurejs.shim';
+import { ICartridge, IGameData, IGameActions, ILocation, IGameActionResult, ICommand, DefaultConsoleActons, IItem, IInteractable } from '../shims/textadventurejs.shim';
 
 export interface IConsoleOptions {
 	onDebugLog?: (message: string) => void;
@@ -421,6 +421,17 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 			var item = itemsForCurrentLocation[subject];
 			var customInteractionsForItem = item.interactions;
 
+			const locationInteraction = getCustomItemInteractionFromLocationBindings(currentLocation, interaction, subject);
+
+			if (locationInteraction) {
+				
+				const interactionResult = locationInteraction(item);
+
+				return typeof interactionResult === 'string'
+					? { message: interactionResult, success: true }
+					: interactionResult;
+			}
+
 			if (!customInteractionsForItem || !(customInteractionsForItem[interaction])) {
 				throw new Error(`Item ${subject} doesn't have a custom interaction defined for ${interaction}`);
 			}
@@ -442,6 +453,17 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 			var interactible = interactablesForCurrentLocation[subject];
 			var customInteraction = interactible[interaction];
 
+			const locationInteraction = getCustomInteractableInteractionFromLocationBindings(currentLocation, interaction, subject);
+
+			if (locationInteraction) {
+				
+				const interactionResult = locationInteraction(interactible);
+
+				return typeof interactionResult === 'string'
+					? { message: interactionResult, success: true }
+					: interactionResult;
+			}
+
 			const interactionResult = typeof customInteraction === 'function'
 				? customInteraction()
 				: customInteraction;
@@ -456,6 +478,36 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 		}
 
 		return;
+	}
+
+	function getCustomItemInteractionFromLocationBindings(location: ILocation, interactionName: string, itemName: string): (item: IItem) => IGameActionResult | string {
+
+		if (!location.itemBindings) {
+			return undefined;
+		}
+
+		const binding = location.itemBindings.find(binding => binding.interactionName === interactionName && binding.subjectName === itemName);
+
+		if (!binding) {
+			return undefined;
+		}
+
+		return binding.action;
+	}
+
+	function getCustomInteractableInteractionFromLocationBindings(location: ILocation, interactionName: string, interactableBindings: string): (interactable: IInteractable) => IGameActionResult | string {
+
+		if (!location.interactableBindings) {
+			return undefined;
+		}
+
+		const binding = location.interactableBindings.find(binding => binding.interactionName === interactionName && binding.subjectName === interactableBindings);
+
+		if (!binding) {
+			return undefined;
+		}
+
+		return binding.action;
 	}
 
 	function isItemInPlayerInventory(gameData: IGameData, itemName: any): boolean {

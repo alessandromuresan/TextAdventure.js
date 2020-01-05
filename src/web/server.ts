@@ -9,7 +9,7 @@ import { CartridgeBuilder } from '../builders/cartridge.builder';
 const port = parseInt((process.env.NECRO_PORT || '80'), 10);
 const debugEnabled = process.env.NECRO_DEBUG ? (process.env.NECRO_DEBUG.toLowerCase() === 'true') : false;
 const devmodeEnabled = process.env.NECRO_DEVMODE ? (process.env.NECRO_DEVMODE.toLowerCase() === 'true') : false;
-const saveFilePath = process.env.NECRO_SAVEFILE || path.join(__dirname, 'savefile.json');
+const savesDirectory = process.env.NECRO_SAVESDIRECTORY || path.join(__dirname, 'saves');
 const cartridgeName = process.env.NECRO_CARTRIDGE || 'necro';
 const sessionSecret = process.env.NECRO_SESSION_SECRET || '1234567890QWERTY';
 
@@ -28,8 +28,6 @@ const introText = fs.readFileSync(path.join(__dirname, 'static', 'assets', 'text
 
 async function startServer() {
 
-    const engine = await loadEngineAsync();
-
     const app = express();
     
     app.use(bodyParser.json());
@@ -45,9 +43,12 @@ async function startServer() {
     
         console.log(`Session id: ${sessionId}`);
     
+        const engine = await loadEngineAsync(sessionId);
+
         const response = engine.console.input(req.body.input);
     
-        const cartridgeRepository = new FileSystemCartridgeRepository(saveFilePath);
+        const saveFile = path.join(savesDirectory, `${sessionId}.savefile.json`);
+        const cartridgeRepository = new FileSystemCartridgeRepository(saveFile);
     
         await cartridgeRepository.saveCartridgeAsync(response.cartridge);
     
@@ -59,6 +60,8 @@ async function startServer() {
         const sessionId = req.sessionID;
     
         console.log(`Session id: ${sessionId}`);
+
+        const engine = await loadEngineAsync(sessionId);
     
         const response: IConsoleInputResponse = {
             actionResult: {
@@ -76,9 +79,14 @@ async function startServer() {
     });
 }
 
-async function loadEngineAsync(): Promise<{ console: IConsole, cartridge: ICartridge }> {
+async function loadEngineAsync(sessionId: string): Promise<{ console: IConsole, cartridge: ICartridge }> {
 
-    const cartridgeBuilder = new CartridgeBuilder();
+    const saveFile = path.join(savesDirectory, `${sessionId}.savefile.json`);
+    const cartridgeRepository = new FileSystemCartridgeRepository(saveFile);
+
+    const savedCartridge = await cartridgeRepository.loadCartridgeAsync();
+
+    const cartridgeBuilder = new CartridgeBuilder(savedCartridge);
     const cartridge = cartridgeFactory(cartridgeBuilder, introText);
 
     const consoleOptions: IConsoleOptions = {};

@@ -1,4 +1,4 @@
-import { ILocation, ICommand } from '../core/shims/textadventurejs.shim';
+import { ILocation, ICommand, ILocationItemBinding, ILocationInteractableBinding, IItem, IInteractable, IGameActionResult } from '../core/shims/textadventurejs.shim';
 import { InteractablesBuilder } from './interactables.builder';
 import { ItemsBuilder } from './items.builder';
 import { ExitsBuilder } from './exits.builder';
@@ -17,6 +17,9 @@ export class LocationBuilder {
     private _onTeardown: () => void;
     private _onCommandExecuted: (command: ICommand) => string;
 
+    private _itemBindings: ILocationItemBinding[];
+    private _interactableBindings: ILocationInteractableBinding[];
+
     private _gameContext: GameContext;
 
     private _savedLocation: ILocation;
@@ -29,6 +32,9 @@ export class LocationBuilder {
         this._interactablesBuilder = new InteractablesBuilder(this._gameContext, this._savedLocation ? this._savedLocation.interactables : undefined);
         this._itemsBuilder = new ItemsBuilder(this._gameContext, this._savedLocation ? this._savedLocation.items : undefined);
         this._exitsBuilder = new ExitsBuilder(this._gameContext, this._savedLocation ? this._savedLocation.exits : undefined);
+
+        this._itemBindings = [];
+        this._interactableBindings = [];
     }
 
     public displayName(displayName: string): LocationBuilder {
@@ -77,6 +83,36 @@ export class LocationBuilder {
         return this;
     }
 
+    public onItemInteraction(interactionName: string, itemName: string, action: (gameContext: GameContext, subject: IItem) => IGameActionResult | string): LocationBuilder {
+        
+        const customAction = (subject: IItem) => {
+            return action(this._gameContext, subject);
+        };
+
+        this._itemBindings.push({
+            action: customAction,
+            interactionName: interactionName,
+            subjectName: itemName
+        });
+
+        return this;
+    }
+
+    public onInteractableInteraction(interactionName: string, interactableName: string, action: (gameContext: GameContext, subject: IInteractable) => IGameActionResult | string): LocationBuilder {
+        
+        const customAction = (subject: IInteractable) => {
+            return action(this._gameContext, subject);
+        };
+
+        this._interactableBindings.push({
+            action: customAction,
+            interactionName: interactionName,
+            subjectName: interactableName
+        });
+
+        return this;
+    }
+
     public build(): ILocation {
         
         const onSetup = () => {
@@ -94,7 +130,9 @@ export class LocationBuilder {
             items: this._itemsBuilder.build(),
             setup: onSetup,
             teardown: this._onTeardown,
-            updateLocation: this._onCommandExecuted
-        }
+            updateLocation: this._onCommandExecuted,
+            interactableBindings: this._interactableBindings,
+            itemBindings: this._itemBindings
+        };
     }
 }

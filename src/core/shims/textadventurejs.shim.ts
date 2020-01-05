@@ -25,6 +25,7 @@ export interface IMap {
 }
 
 export interface ILocation {
+
     firstVisit: boolean;
     description: string;
     displayName?: string;
@@ -35,6 +36,23 @@ export interface ILocation {
     setup?: (...args: any[]) => void;
     teardown?: (...args: any[]) => void;
     updateLocation?: (command: ICommand) => string;
+
+    itemBindings?: ILocationItemBinding[];
+    interactableBindings?: ILocationInteractableBinding[];
+}
+
+export interface ILocationSubjectBinding<TSubject> {
+    interactionName: string;
+    subjectName: string;
+    action: (subject: TSubject) => IGameActionResult | string;
+}
+
+export interface ILocationItemBinding extends ILocationSubjectBinding<IItem> {
+
+}
+
+export interface ILocationInteractableBinding extends ILocationSubjectBinding<IInteractable> {
+    
 }
 
 export interface IItemCollection { [itemName: string]: IItem };

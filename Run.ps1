@@ -3,7 +3,7 @@ param(
     [switch] $NoInstall,
     [switch] $Debug,
     [switch] $Devmode,
-    [switch] $DeleteSave,
+    [switch] $DeleteSaves,
 
     [int] $Port = 3000
 )
@@ -24,15 +24,15 @@ if (!$NoBuild) {
     Write-Warning "Make sure to run 'npm run build' before running this script"
 }
 
-$SaveFile = Join-Path $PSScriptRoot "savefile.json"
+$SavesDirectory = Join-Path $PSScriptRoot "saves"
 
-if ($DeleteSave -and (Test-Path $SaveFile)) {
-    Write-Warning "Deleting old save file: $SaveFile"
-    Remove-Item -Path $SaveFile -Force | Out-Null
+if ($DeleteSaves -and (Test-Path $SavesDirectory)) {
+    Write-Warning "Deleting old save directory: $SavesDirectory"
+    Remove-Item -Path $SavesDirectory -Force -Recurse | Out-Null
 }
 
 $ENV:NECRO_PORT = $Port
-$ENV:NECRO_SAVEFILE = $SaveFile
+$ENV:NECRO_SAVESDIRECTORY = $SavesDirectory
 $ENV:NECRO_DEBUG = if ($Debug) { "true" } else { "false" }
 $ENV:NECRO_DEVMODE = if ($Devmode) { "true" } else { "false" }
 

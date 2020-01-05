@@ -25,7 +25,7 @@ export class FileSystemCartridgeRepository implements ICartridgeRepository {
                 introText: cartridge.gameData.introText,
                 outroText: cartridge.gameData.outroText,
                 player: cartridge.gameData.player,
-                map: undefined
+                map: cartridge.gameData.map
             },
             gameActions: undefined
         };

@@ -6,13 +6,16 @@
 		<link rel="stylesheet" type="text/css" href="css/terminal.css">
 	</head>
 	<body>
-		<div id="console-container">
+		<div id="splashscreen-container">
+			<button id="start-button">ＳＴＡＲＴ</button>
+		</div>
+		<div id="console-container" style="display: none;">
 			<form id="console" action="#">
 				<input id="input" type="text" autofocus autocomplete="off"/>
 				<input type="submit" id="enter" />
 			</form>
 			<textarea id="display" readonly></textarea>
-			<audio id="audio-background-music" src="" loop>
+			<audio id="audio-background-music" src="" loop volume="0.6">
 				Your browser does not support the <code>audio</code> element.
 			</audio>
 			<audio id="audio-sound" src="">

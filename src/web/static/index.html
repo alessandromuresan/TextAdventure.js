@@ -1,15 +1,23 @@
 <html>
 	<head>
-		<title>TextAdventure.js</title>
-		<script src="lib/jquery-2.1.0.min.js"></script>
+		<title>ＮＥＣＲＯ</title>
+		<script src="lib/jquery/jquery.min.js"></script>
 		<script src="js/terminal.js"></script>
 		<link rel="stylesheet" type="text/css" href="css/terminal.css">
 	</head>
 	<body>
-		<form id="console" action="#">
-			<input id="input" type="text" autofocus autocomplete="off"/>
-			<input type="submit" id="enter" />
-		</form>
-		<textarea id="display" readonly></textarea>
+		<div id="console-container">
+			<form id="console" action="#">
+				<input id="input" type="text" autofocus autocomplete="off"/>
+				<input type="submit" id="enter" />
+			</form>
+			<textarea id="display" readonly></textarea>
+			<audio id="audio-background-music" src="" loop>
+				Your browser does not support the <code>audio</code> element.
+			</audio>
+			<audio id="audio-sound" src="">
+				Your browser does not support the <code>audio</code> element.
+			</audio>
+		</div>
 	</body>
 </html>

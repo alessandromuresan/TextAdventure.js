@@ -1,6 +1,6 @@
 *{
 	background: #000000;
-	color: #00D100;
+	color: rgb(18, 179, 163);
 	margin: 0;
 	border: none;
 }
@@ -15,8 +15,12 @@ html, body, #input, #display{
 	height: 30px;
 	position: absolute;
 	bottom: 0;
-	border-top: 1px solid #00D100;
+	border-top: 1px solid rgb(18, 179, 163);
 	padding: 10px;
+	font-size: 20px;
+}
+#input::before {
+	content: '>';
 }
 #display{
 	line-height: 1.5em;
@@ -24,6 +28,8 @@ html, body, #input, #display{
 	overflow-y: scroll;
 	overflow-x: hidden;
 	resize: none;
+	text-align: center;
+	font-size: 20px;
 }
 #display::-webkit-scrollbar
 {
@@ -31,7 +37,7 @@ html, body, #input, #display{
 }
 #display::-webkit-scrollbar-thumb
 {
-	background-color: #00D100;
+	background-color: rgb(18, 179, 163);
 	border: 6px solid #000000;
 }
 #display::-webkit-scrollbar-track

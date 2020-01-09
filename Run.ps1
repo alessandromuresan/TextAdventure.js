@@ -3,7 +3,9 @@ param(
     [switch] $NoInstall,
     [switch] $Debug,
     [switch] $Devmode,
-    [switch] $DeleteSave
+    [switch] $DeleteSave,
+
+    [int] $Port = 3000
 )
 
 $ErrorActionPreference = "Stop"
@@ -29,8 +31,11 @@ if ($DeleteSave -and (Test-Path $SaveFile)) {
     Remove-Item -Path $SaveFile -Force | Out-Null
 }
 
+$ENV:NECRO_PORT = $Port
 $ENV:NECRO_SAVEFILE = $SaveFile
 $ENV:NECRO_DEBUG = if ($Debug) { "true" } else { "false" }
 $ENV:NECRO_DEVMODE = if ($Devmode) { "true" } else { "false" }
+
+Start-Process "http://localhost:$($Port)"
 
 npm start

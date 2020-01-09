@@ -14,10 +14,12 @@
     "build": "npm run clean && tsc && npm run copy",
     "copy": "npm run copy:web && npm run copy:cartridges",
     "copy:cartridges": "cd src/cartridges && copyfiles -e **/*.ts **/*.* ../../dist/cartridges && cd ../..",
-    "copy:web": "cd src/web && copyfiles -e **/*.ts static/**/*.* ../../dist/web && cd ../..",
+    "copy:web": "npm run copy:web:static && npm run copy:web:assets",
+    "copy:web:static": "cd src/web && copyfiles -e **/*.ts static/**/*.* ../../dist/web && cd ../.. && cd node_modules/jquery/dist && copyfiles **/*.* ../../../dist/web/static/lib/jquery",
+    "copy:web:assets": "cd src/cartridges/necro && copyfiles -e **/*.js assets/**/*.* ../../../dist/web/static && cd ../../..",
     "start:web": "node dist/web/server.js",
-    "start:cli": "node dist/cli/server.js",
-    "start": "npm run start:cli"
+    "start:cli": "node --experimental-worker dist/cli/server.js",
+    "start": "npm run start:web"
   },
   "files": [
     "server.js",
@@ -41,7 +43,9 @@
     "console-read-write": "0.1.1",
     "express": "^4.12.0",
     "express-session": "^1.10.3",
-    "open": "^7.0.0"
+    "jquery": "^3.4.1",
+    "open": "^7.0.0",
+    "play-sound": "1.1.3"
   },
   "devDependencies": {
     "copyfiles": "^2.1.1",

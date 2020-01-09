@@ -1,7 +1,8 @@
 $(function(){
 	// ===== Onload Functions ===========================================================
 	displayResize();
-	messageServer('get games');
+	getIntroText();
+	playBackgroundMusic('/assets/audio/ashes.mp3');
 
 	// ===== Event Handlers =============================================================
 	// ----- Input Submit ---------------------------------------------------------------
@@ -48,24 +49,67 @@ $(function(){
 
 // ===== Functions ======================================================================
 // ----- Send Message to Server ---------------------------------------------------------
-function messageServer(message: any){
-	$.post(window.location.href+'console', {"input": message}, function(data) {
-		toScreen(data.response,'console');
-	}).fail(function(){
+function messageServer(message: any) {
+	$.post(window.location.href + 'console/input', {"input": message}, function(data) {
+		console.log(data);
+		toScreen(data,'console');
+	}).fail(function(err) {
+		console.log(err);
 		toScreen('Unable to reach server.','terminal');
 	});
 }
+
+function getIntroText() {
+
+	$.post(window.location.href + 'console/getIntro', function(data) {
+		console.log(data);
+		toScreen(data,'console');
+	}).fail(function(err){
+		console.log(err);
+		toScreen('Unable to reach server.','terminal');
+	});
+}
+
 // ----- Insure Terminal Appearance -----------------------------------------------------
 function displayResize(){
 	$('#display').height($(window).height()-30);
 	$('#display').scrollTop($('#display')[0].scrollHeight);
 }
 // ----- Write to Screen ----------------------------------------------------------------
-function toScreen(message: any, actor: any){
-	if(actor == 'user'){
+function toScreen(response: any, actor: any) {
+
+	let message = typeof response === 'string' ? response : '';
+	let audioAssetToPlay;
+
+	if(actor == 'user' || actor === 'terminal'){
 		message = '> ' + message;
+	} else {
+		message = response.actionResult.message;
+		audioAssetToPlay = response.actionResult.audioAssetToPlay;
 	}
+
 	var displayString = $('#display').val() + message + '\n';
+
 	$('#display').val(displayString);
 	$('#display').scrollTop($('#display')[0].scrollHeight);
+
+	if (audioAssetToPlay) {
+		playSound(`/assets/audio/${audioAssetToPlay}`);
+	}
+}
+
+function playBackgroundMusic(src: string): void {
+
+	const audioElement: HTMLAudioElement = <HTMLAudioElement>document.getElementById('audio-background-music');
+
+	audioElement.src = src;
+	audioElement.play();
+}
+
+function playSound(src: string): void {
+
+	const soundElement: HTMLAudioElement = <HTMLAudioElement>document.getElementById('audio-sound');
+
+	soundElement.src = src;
+	soundElement.play();
 }

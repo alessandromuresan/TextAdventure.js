@@ -46,13 +46,13 @@ export interface IItem {
     displayName: string;
     hidden: boolean;
     quantity: number;
-    use?: (object: string) => string;
+    use?: (object: string) => (string | IGameActionResult);
     onTaken?: () => void;
-    interactions?: { [interactionName: string]: string | (() => string); };
+    interactions?: { [interactionName: string]: (string | IGameActionResult) | (() => (string | IGameActionResult)); };
 }
 
 export interface IInteractable {
-    [interactionName: string]: string | (() => string)
+    [interactionName: string]: (string | IGameActionResult) | (() => (string | IGameActionResult))
 }
 
 export interface IExit {
@@ -61,7 +61,7 @@ export interface IExit {
 }
 
 export interface IGameActions {
-    [actionName: string]: (gameData: IGameData, command: ICommand, consoleInterface: ConsoleInterfaceFn) => IGameActionResult | string;
+    [actionName: string]: (gameData: IGameData, command: ICommand, consoleInterface: ConsoleInterfaceFn) => IGameActionResult;
 }
 
 export type ConsoleInterfaceFn = (gameData: IGameData, command: ICommand) => IGameActionResult;
@@ -69,6 +69,7 @@ export type ConsoleInterfaceFn = (gameData: IGameData, command: ICommand) => IGa
 export interface IGameActionResult {
     message: string;
     success: boolean;
+    audioAssetToPlay?: string;
 }
 
 export interface ICommand {

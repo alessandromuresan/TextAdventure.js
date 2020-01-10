@@ -9,7 +9,11 @@ export = (location: LocationBuilder) => {
         .displayName("School")
         .configureInteractables(interactables => {
 
-            interactables.add('test');
+            interactables.add("door");
+            interactables.add("window");
+            interactables.add("cabinet");
+
+            return;
 
             interactables.add("door")
                 .on(DefaultConsoleActons.look, () => {
@@ -64,15 +68,17 @@ export = (location: LocationBuilder) => {
 
                     return "An old cabinet with a single drawer.";
                 });
-        })
-        .configureItems(items => {
-            
-        })
-        .configureExits(exits => {
-            
         });
 
-    location.onInteractableInteraction('test', 'test', (context, subject) => {
-        return 'asdasdasaasd';
-    })
+    location.onInteractableInteraction("look", "door", (context, subject) => {
+        return "the door leads outside.";
+    });
+
+    location.onInteractableInteraction("look", "window", (context, subject) => {
+        return "The window is baricaded.";
+    });
+
+    location.onInteractableInteraction("look", "cabinet", (context, subject) => {
+        return "it's a cabinet.";
+    });
 };

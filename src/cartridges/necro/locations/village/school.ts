@@ -9,6 +9,8 @@ export = (location: LocationBuilder) => {
         .displayName("School")
         .configureInteractables(interactables => {
 
+            interactables.add('test');
+
             interactables.add("door")
                 .on(DefaultConsoleActons.look, () => {
                     return "the door leads outside.";
@@ -69,4 +71,8 @@ export = (location: LocationBuilder) => {
         .configureExits(exits => {
             
         });
+
+    location.onInteractableInteraction('test', 'test', (context, subject) => {
+        return 'asdasdasaasd';
+    })
 };

@@ -538,8 +538,8 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 
 	function canInteractWithSubjectInCurrentLocation(gameData: IGameData, actionName: string, subjectName: string): boolean {
 
-		return (isItemInCurrentLocation(gameData, subjectName) && isActionDefinedOnItemInCurrentLocation(gameData, actionName, subjectName)) ||
-			(isInteractableInCurrentLocation(gameData, subjectName) && isActionDefinedOnInteractableInCurrentLocation(gameData, actionName, subjectName));
+		return (isItemInCurrentLocation(gameData, subjectName) && (isActionDefinedOnItemInCurrentLocation(gameData, actionName, subjectName) || isActionDefinedAsItemBindingInCurrentLocation(gameData, actionName, subjectName) )) ||
+			(isInteractableInCurrentLocation(gameData, subjectName) && (isActionDefinedOnInteractableInCurrentLocation(gameData, actionName, subjectName) || isActionDefinedAsInteractableBindingInCurrentLocation(gameData, actionName, subjectName) ) );
 	}
 
 	function isActionDefinedOnItemInCurrentLocation(gameData: IGameData, actionName: string, itemName: string): boolean {
@@ -556,6 +556,20 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 		const interactable = currentLocation.interactables ? currentLocation.interactables[interactableName] : undefined;
 		
 		return !!(interactable && interactable[actionName]);
+	}
+
+	function isActionDefinedAsItemBindingInCurrentLocation(gameData: IGameData, actionName: string, itemName: string): boolean {
+
+		const currentLocation = getCurrentLocation(gameData);
+
+		return currentLocation.itemBindings && currentLocation.itemBindings.some(b => b.interactionName === actionName && b.subjectName === itemName);
+	}
+
+	function isActionDefinedAsInteractableBindingInCurrentLocation(gameData: IGameData, actionName: string, interactableName: string): boolean {
+
+		const currentLocation = getCurrentLocation(gameData);
+
+		return currentLocation.interactableBindings && currentLocation.interactableBindings.some(b => b.interactionName === actionName && b.subjectName === interactableName);
 	}
 
 	function moveItem(itemName: any, startLocation: any, endLocation: any){

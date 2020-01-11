@@ -26,13 +26,13 @@ if (!$NoBuild) {
 
 $SavesDirectory = Join-Path $PSScriptRoot "saves"
 
-if (!$DeleteSaves -and !(Test-Path $SavesDirectory)) {
-    New-Item -Path $SavesDirectory -ItemType "Directory" | Out-Null
-}
-
 if ($DeleteSaves -and (Test-Path $SavesDirectory)) {
     Write-Warning "Deleting old save directory: $SavesDirectory"
     Remove-Item -Path $SavesDirectory -Force -Recurse | Out-Null
+}
+
+if (!(Test-Path $SavesDirectory)) {
+    New-Item -Path $SavesDirectory -ItemType "Directory" | Out-Null
 }
 
 $ENV:NECRO_PORT = $Port

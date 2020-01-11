@@ -538,6 +538,16 @@ export default function createConsole(cartridge: ICartridge, options?: IConsoleO
 
 	function canInteractWithSubjectInCurrentLocation(gameData: IGameData, actionName: string, subjectName: string): boolean {
 
+		const isItem = isItemInCurrentLocation(gameData, subjectName);
+		const itemHasAction = isActionDefinedOnItemInCurrentLocation(gameData, actionName, subjectName);
+		const itemHasBinding = isActionDefinedAsItemBindingInCurrentLocation(gameData, actionName, subjectName);
+
+		const isInteractable = isInteractableInCurrentLocation(gameData, subjectName);
+		const interactableHasAction = isActionDefinedOnInteractableInCurrentLocation(gameData, actionName, subjectName);
+		const interactableHasBinding = isActionDefinedAsInteractableBindingInCurrentLocation(gameData, actionName, subjectName);
+
+		return (isItem && (itemHasAction || itemHasBinding)) || (isInteractable && (interactableHasAction || interactableHasBinding));
+
 		return (isItemInCurrentLocation(gameData, subjectName) && (isActionDefinedOnItemInCurrentLocation(gameData, actionName, subjectName) || isActionDefinedAsItemBindingInCurrentLocation(gameData, actionName, subjectName) )) ||
 			(isInteractableInCurrentLocation(gameData, subjectName) && (isActionDefinedOnInteractableInCurrentLocation(gameData, actionName, subjectName) || isActionDefinedAsInteractableBindingInCurrentLocation(gameData, actionName, subjectName) ) );
 	}

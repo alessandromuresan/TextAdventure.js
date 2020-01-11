@@ -11,6 +11,15 @@ html, body, #input, #display{
 	width: 100%;
 	height: 100%;
 }
+#splashscreen-container {
+	text-align: center;
+}
+#start-button {
+	font-size: 40px;
+	position: absolute;
+	top: 40%;
+	cursor: pointer;
+}
 #input{
 	height: 30px;
 	position: absolute;

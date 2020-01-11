@@ -1,4 +1,17 @@
-$(function(){
+$(() => {
+
+	$('#start-button').on('click', e => {
+
+		e.preventDefault();
+
+		$('#console-container').attr('style', 'display:block;');
+		$('#splashscreen-container').attr('style', 'display:none;');
+
+		initTerminal();
+	});
+});
+
+function initTerminal() {
 	// ===== Onload Functions ===========================================================
 	displayResize();
 	getIntroText();
@@ -45,7 +58,7 @@ $(function(){
 	$(window).resize(function(){
 		displayResize();
 	});
-});
+}
 
 // ===== Functions ======================================================================
 // ----- Send Message to Server ---------------------------------------------------------

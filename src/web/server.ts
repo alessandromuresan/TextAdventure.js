@@ -6,10 +6,10 @@ import fs from 'fs';
 import { ICartridge } from '../core/shims/textadventurejs.shim';
 import { CartridgeBuilder } from '../builders/cartridge.builder';
 
-const port = parseInt((process.env.NECRO_PORT || '80'), 10);
+const port = parseInt((process.env.NECRO_PORT || '3000'), 10);
 const debugEnabled = process.env.NECRO_DEBUG ? (process.env.NECRO_DEBUG.toLowerCase() === 'true') : false;
 const devmodeEnabled = process.env.NECRO_DEVMODE ? (process.env.NECRO_DEVMODE.toLowerCase() === 'true') : false;
-const savesDirectory = process.env.NECRO_SAVESDIRECTORY || path.join(__dirname, 'saves');
+const savesDirectory = process.env.NECRO_SAVESDIRECTORY || path.resolve(path.join(__dirname, '..', '..', 'saves'));
 const cartridgeName = process.env.NECRO_CARTRIDGE || 'necro';
 const sessionSecret = process.env.NECRO_SESSION_SECRET || '1234567890QWERTY';
 

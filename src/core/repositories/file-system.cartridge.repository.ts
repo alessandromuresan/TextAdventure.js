@@ -1,10 +1,7 @@
 import { ICartridgeRepository } from './cartridge.repository';
 import { ICartridge } from '../shims/textadventurejs.shim';
-import fs from 'fs';
-import { promisify } from 'util';
-
-const writeFileAsync = promisify(fs.writeFile);
-const readFileAsync = promisify(fs.readFile);
+import * as fse from 'fs-extra';
+import path = require('path');
 
 export class FileSystemCartridgeRepository implements ICartridgeRepository {
 
@@ -15,6 +12,10 @@ export class FileSystemCartridgeRepository implements ICartridgeRepository {
     }
 
     public async saveCartridgeAsync(cartridge: ICartridge): Promise<void> {
+
+        const saveFileDirname = path.dirname(this._saveFilePath);
+
+        await fse.ensureDir(saveFileDirname);
 
         // do not save map, as it can contain dynamically-added functionality (which needs to be rebuilt everytime)
         const cartridgeToSave: ICartridge = {
@@ -30,7 +31,7 @@ export class FileSystemCartridgeRepository implements ICartridgeRepository {
             gameActions: undefined
         };
 
-        await writeFileAsync(this._saveFilePath, JSON.stringify(cartridgeToSave, null, 4), {
+        await fse.writeJson(this._saveFilePath, cartridgeToSave, {
             encoding: 'utf8'
         });
     }
@@ -43,24 +44,13 @@ export class FileSystemCartridgeRepository implements ICartridgeRepository {
             return undefined;
         }
 
-        const rawData = await readFileAsync(this._saveFilePath, {
+        return await fse.readJson(this._saveFilePath, {
             encoding: 'utf8'
         });
-
-        return <ICartridge>JSON.parse(rawData);
     }
 
     private async saveFileExistsAsync(): Promise<boolean> {
 
-        return new Promise<boolean>((resolve, reject) => {
-            fs.access(this._saveFilePath, fs.constants.F_OK, (err) => {
-                if (err) {
-                    resolve(false);
-                } else {
-                    resolve(true);
-                }
-            })
-        });
-           
+        return await fse.pathExists(this._saveFilePath);           
     }
 }
